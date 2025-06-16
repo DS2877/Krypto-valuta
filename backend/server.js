@@ -16,7 +16,7 @@ app.use(cors());
 app.use(express.json());
 
 // Anslut till databasen
-connectDB(process.env.MONGO_URI);
+connectDB(process.env.MONGO_URI);  // Använd rätt MongoDB URI från .env
 
 // Auth-routes för registrering och inloggning
 app.use('/api/auth', authRoutes);
