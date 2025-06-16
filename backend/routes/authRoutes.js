@@ -1,51 +1,72 @@
 import express from 'express';
-import User from '../models/User.js';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
+import User from '../models/userModel.js';
 
-dotenv.config();
 const router = express.Router();
 
-// Registrering av användare
+// Registrera en ny användare
 router.post('/register', async (req, res) => {
-  const { email, password } = req.body;
+  const { name, email, password } = req.body;
 
-  // Kontrollera om användaren redan finns
-  const userExists = await User.findOne({ email });
-  if (userExists) {
-    return res.status(400).json({ message: 'Användare finns redan' });
+  try {
+    // Kontrollera om användaren redan finns
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: 'Användaren finns redan!' });
+    }
+
+    // Skapa ny användare
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword,
+    });
+
+    await newUser.save();
+
+    // Skapa JWT token
+    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
+      expiresIn: '1h',
+    });
+
+    res.status(201).json({ message: 'Användare skapad', token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Serverfel' });
   }
-
-  // Skapa ny användare
-  const user = new User({ email, password });
-  await user.save();
-
-  // Skapa JWT-token
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-  res.status(201).json({ message: 'Användare skapad', token });
 });
 
-// Inloggning
+// Logga in användare
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
-  // Hitta användaren
-  const user = await User.findOne({ email });
-  if (!user) {
-    return res.status(400).json({ message: 'Ogiltig e-post eller lösenord' });
+  try {
+    // Hitta användaren
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: 'Fel användarnamn eller lösenord' });
+    }
+
+    // Kontrollera om lösenordet är rätt
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Fel användarnamn eller lösenord' });
+    }
+
+    // Skapa JWT token
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: '1h',
+    });
+
+    res.json({ message: 'Inloggning lyckades', token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Serverfel' });
   }
-
-  // Jämför lösenord
-  const isMatch = await user.matchPassword(password);
-  if (!isMatch) {
-    return res.status(400).json({ message: 'Ogiltig e-post eller lösenord' });
-  }
-
-  // Skapa JWT-token
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-  res.json({ message: 'Inloggad', token });
 });
 
 export default router;
