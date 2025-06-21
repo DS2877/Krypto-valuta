@@ -1,35 +1,79 @@
 import { useEffect, useState } from 'react';
-import API from '../api/api';
+import axios from 'axios';
 
-export default function TransactionsPage() {
+function TransactionsPage({ token }) {
   const [transactions, setTransactions] = useState([]);
-  const [newTx, setNewTx] = useState({ fromAddress: '', toAddress: '', amount: 0 });
+  const [receiver, setReceiver] = useState('');
+  const [amount, setAmount] = useState('');
+  const [error, setError] = useState('');
+
+  const fetchTransactions = async () => {
+    try {
+      const res = await axios.get('/api/transactions', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTransactions(res.data);
+    } catch (err) {
+      setError('Kunde inte hämta transaktioner.');
+    }
+  };
+
+  const createTransaction = async (e) => {
+    e.preventDefault();
+    setError('');
+    try {
+      await axios.post(
+        '/api/transactions',
+        { receiver, amount: parseFloat(amount) },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setReceiver('');
+      setAmount('');
+      fetchTransactions();
+    } catch (err) {
+      setError('Kunde inte skapa transaktion.');
+    }
+  };
 
   useEffect(() => {
-    API.get('/transactions/pool').then(res => setTransactions(res.data));
+    fetchTransactions();
   }, []);
-
-  const createTransaction = async () => {
-    await API.post('/transactions', newTx);
-    setNewTx({ fromAddress: '', toAddress: '', amount: 0 });
-    const res = await API.get('/transactions/pool');
-    setTransactions(res.data);
-  };
 
   return (
     <div className="p-4">
-      <h2>Skapa transaktion</h2>
-      <input placeholder="Från" value={newTx.fromAddress} onChange={(e) => setNewTx({ ...newTx, fromAddress: e.target.value })} />
-      <input placeholder="Till" value={newTx.toAddress} onChange={(e) => setNewTx({ ...newTx, toAddress: e.target.value })} />
-      <input type="number" placeholder="Belopp" value={newTx.amount} onChange={(e) => setNewTx({ ...newTx, amount: Number(e.target.value) })} />
-      <button onClick={createTransaction}>Lägg till</button>
+      <h1 className="text-2xl mb-4">Transaktioner</h1>
 
-      <h3>Transaktionspool</h3>
-      <ul>
-        {transactions.map((tx, i) => (
-          <li key={i}>{tx.fromAddress} ➡️ {tx.toAddress} ({tx.amount})</li>
+      <form onSubmit={createTransaction} className="flex gap-2 mb-4">
+        <input
+          type="text"
+          placeholder="Mottagare"
+          value={receiver}
+          onChange={(e) => setReceiver(e.target.value)}
+          className="border p-1"
+          required
+        />
+        <input
+          type="number"
+          placeholder="Belopp"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          className="border p-1"
+          required
+        />
+        <button type="submit" className="bg-blue-500 text-white px-3 rounded">
+          Skapa
+        </button>
+      </form>
+
+      {error && <p className="text-red-500">{error}</p>}
+
+      <ul className="list-disc pl-5">
+        {transactions.map((tx) => (
+          <li key={tx._id}>{tx.sender} skickade {tx.amount} till {tx.receiver}</li>
         ))}
       </ul>
     </div>
   );
 }
+
+export default TransactionsPage;

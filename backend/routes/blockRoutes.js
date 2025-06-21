@@ -6,7 +6,7 @@ import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// GET /api/blocks - Hämta alla block
+// Hämta alla block
 router.get('/', async (req, res) => {
   try {
     const blocks = await Block.find().sort({ index: 1 });
@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/blocks/mine - Skapa nytt block från transaktionspool
+// POST /api/blocks/mine
 router.post('/mine', protect, async (req, res) => {
   try {
     const transactions = getTransactionPool();

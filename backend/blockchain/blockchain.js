@@ -1,4 +1,3 @@
-// blockchain/blockchain.js
 import Block from '../models/Block.js';
 
 let difficulty = 4;

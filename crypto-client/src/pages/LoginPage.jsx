@@ -1,55 +1,59 @@
-// src/pages/LoginPage.jsx
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import API from '../api/api';
+import axios from 'axios';
 
-export default function LoginPage() {
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState({ email: '', password: '' });
+function LoginPage({ setToken }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
-
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+
     try {
-      const res = await API.post('/auth/login', formData);
-      localStorage.setItem('token', res.data.token);
-      navigate('/dashboard'); // eller var du vill skicka användaren
+      const res = await axios.post('/api/auth/login', { email, password });
+      const token = res.data.token;
+      localStorage.setItem('token', token); // spara
+      setToken(token); // Uppdatera
     } catch (err) {
-      setError('Fel vid inloggning');
+      setError('Fel vid inloggning. Kontrollera e-post/lösenord.');
     }
   };
 
   return (
-    <div className="login-page">
-      <h2>Logga in</h2>
-      <form onSubmit={handleSubmit}>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <form onSubmit={handleLogin} className="bg-white p-6 rounded shadow w-80">
+        <h1 className="text-xl mb-4 text-center">Logga in</h1>
+
+        {error && <p className="text-red-500 mb-2 text-center">{error}</p>}
+
         <input
-          name="email"
-          placeholder="E-post"
           type="email"
-          value={formData.email}
-          onChange={handleChange}
+          placeholder="E-post"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full border p-2 mb-2"
           required
         />
+
         <input
-          name="password"
-          placeholder="Lösenord"
           type="password"
-          value={formData.password}
-          onChange={handleChange}
+          placeholder="Lösenord"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full border p-2 mb-4"
           required
         />
-        <button type="submit">Logga in</button>
+
+        <button
+          type="submit"
+          className="bg-blue-500 text-white w-full py-2 rounded"
+        >
+          Logga in
+        </button>
       </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   );
 }
+
+export default LoginPage;
