@@ -29,10 +29,7 @@ function SignUpPage({ setToken }) {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <form
-        onSubmit={handleSignUp}
-        className="bg-white p-6 rounded shadow w-80"
-      >
+      <form onSubmit={handleSignUp} className="bg-white p-6 rounded shadow w-80">
         <h1 className="text-xl mb-4 text-center">Skapa konto</h1>
 
         {error && <p className="text-red-500 mb-2 text-center">{error}</p>}
@@ -60,17 +57,14 @@ function SignUpPage({ setToken }) {
           required
         />
 
-        <button
-          type="submit"
-          className="bg-green-500 text-white w-full py-2 rounded"
-        >
+        <button type="submit" className="bg-green-500 text-white w-full py-2 rounded">
           Registrera
         </button>
 
         <p className="text-center mt-4 text-sm">
           Redan registrerad?{' '}
-          <Link to="/" className="text-blue-500 underline">
-            Logga in
+          <Link to="/login" className="text-blue-500 underline">
+            Logga in här
           </Link>
         </p>
       </form>

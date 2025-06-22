@@ -3,22 +3,16 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
 
-import connectDB from './config/db.js'; // DB-anslutning
-import authRoutes from './routes/authRoutes.js'; // Auth
-import transactionRoutes from './routes/transactionRoutes.js'; // Transaktioner
-import blockRoutes from './routes/blockRoutes.js'; // Block
-import { protect } from './middleware/authMiddleware.js'; // Middleware
-import { createGenesisBlock } from './blockchain/blockchain.js'; // Genesis block
+import connectDB from './config/db.js';
+import authRoutes from './routes/authRoutes.js';
+import transactionRoutes from './routes/transactionRoutes.js';
+import blockRoutes from './routes/blockRoutes.js';
+import { protect } from './middleware/authMiddleware.js';
+import { createGenesisBlock } from './blockchain/blockchain.js';
 
-createGenesisBlock();
-
-app.use('/api/transactions', transactionRoutes);
-app.use('/api/blocks', blockRoutes);
-
-// Ladda miljövariabler
 dotenv.config();
 
-// Skapa express-app
+// express-app
 const app = express();
 
 // Middleware
@@ -40,7 +34,7 @@ const PORT = process.env.PORT || 5000;
 
 connectDB(process.env.MONGO_URI)
   .then(async () => {
-    await createGenesisBlock(); // Säkerställ att första blocket finns
+    await createGenesisBlock();
     app.listen(PORT, () => {
       console.log(`🚀 Server körs på http://localhost:${PORT}`);
     });

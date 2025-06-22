@@ -1,14 +1,30 @@
-// src/api/api.js
 import axios from 'axios';
 
-const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-});
+const API_URL = 'http://localhost:5000/api';
 
-API.interceptors.request.use((req) => {
-  const token = localStorage.getItem('token');
-  if (token) req.headers.Authorization = `Bearer ${token}`;
-  return req;
-});
+// Login
+export async function login(credentials) {
+  const response = await axios.post(`${API_URL}/auth/login`, credentials);
+  return response.data;
+}
 
-export default API;
+// Register
+export async function register(credentials) {
+  const response = await axios.post(`${API_URL}/auth/register`, credentials);
+  return response.data;
+}
+
+
+export async function getProtected(token) {
+  const response = await axios.get(`${API_URL}/protected`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
+}
+
+
+export default {
+  login,
+  register,
+  getProtected,
+};

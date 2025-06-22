@@ -1,14 +1,11 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const connectDB = async (uri) => {
+const connectDB = async (url) => {
   try {
-    await mongoose.connect(uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log('✅ MongoDB ansluten');
+    await mongoose.connect(url);
+    console.log("✅ MongoDB ansluten");
   } catch (error) {
-    console.error('❌ MongoDB-anslutning misslyckades', error);
+    console.error("❌ MongoDB-anslutning misslyckades:", error.message);
     process.exit(1);
   }
 };

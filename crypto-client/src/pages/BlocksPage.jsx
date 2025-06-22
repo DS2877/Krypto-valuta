@@ -1,29 +1,30 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-function BlocksPage({ token }) {
+export default function BlocksPage() {
   const [blocks, setBlocks] = useState([]);
-  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const token = localStorage.getItem('token');
 
   const fetchBlocks = async () => {
-    try {
-      const res = await axios.get('/api/blocks', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setBlocks(res.data);
-    } catch (err) {
-      setError('Kunde inte hämta block.');
-    }
+    const { data } = await axios.get('http://localhost:5000/api/blocks', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setBlocks(data.blocks || data);
   };
 
   const mineBlock = async () => {
+    setMessage('Minerar...');
     try {
-      await axios.post('/api/blocks', {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.post(
+        'http://localhost:5000/api/blocks/mine',
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setMessage('✅ Nytt block skapat');
       fetchBlocks();
-    } catch (err) {
-      setError('Kunde inte skapa block.');
+    } catch (error) {
+      setMessage('❌ Kunde inte mine:a block');
     }
   };
 
@@ -32,21 +33,21 @@ function BlocksPage({ token }) {
   }, []);
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl mb-4">Block</h1>
-      <button onClick={mineBlock} className="bg-green-500 text-white px-3 rounded mb-4">
-        Mina nytt block
-      </button>
+    <div className="p-4 space-y-4">
+      <h1 className="text-2xl font-bold">Blockkedjan</h1>
+      <button onClick={mineBlock} className="bg-yellow-500 text-white p-2 rounded">Mine:a nytt block</button>
+      {message && <p>{message}</p>}
 
-      {error && <p className="text-red-500">{error}</p>}
-
-      <ul className="list-decimal pl-5">
+      <ul className="space-y-2">
         {blocks.map((block) => (
-          <li key={block._id}>Block #{block.index}, {block.transactions.length} transaktioner</li>
+          <li key={block._id} className="bg-white p-4 rounded shadow">
+            <div className="text-xs text-gray-500">Index: {block.index}</div>
+            <div>Hash: {block.hash}</div>
+            <div>PreviousHash: {block.previousHash}</div>
+            <div>Transaktioner: {block.transactions.length}</div>
+          </li>
         ))}
       </ul>
     </div>
   );
 }
-
-export default BlocksPage;

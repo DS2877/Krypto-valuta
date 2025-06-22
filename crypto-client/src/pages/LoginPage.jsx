@@ -1,59 +1,60 @@
 import { useState } from 'react';
 import axios from 'axios';
 
-function LoginPage({ setToken }) {
+export default function LoginPage({ setToken }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [isRegister, setIsRegister] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError(null);
 
     try {
-      const res = await axios.post('/api/auth/login', { email, password });
-      const token = res.data.token;
-      localStorage.setItem('token', token); // spara
-      setToken(token); // Uppdatera
+      const endpoint = isRegister ? '/register' : '/login';
+      const { data } = await axios.post(`http://localhost:5000/api/auth${endpoint}`, { email, password });
+      localStorage.setItem('token', data.token);
+      setToken(data.token);
     } catch (err) {
-      setError('Fel vid inloggning. Kontrollera e-post/lösenord.');
+      setError('Fel vid inloggning/registrering. Kontrollera dina uppgifter.');
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <form onSubmit={handleLogin} className="bg-white p-6 rounded shadow w-80">
-        <h1 className="text-xl mb-4 text-center">Logga in</h1>
-
-        {error && <p className="text-red-500 mb-2 text-center">{error}</p>}
-
-        <input
-          type="email"
-          placeholder="E-post"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full border p-2 mb-2"
-          required
-        />
-
-        <input
-          type="password"
-          placeholder="Lösenord"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full border p-2 mb-4"
-          required
-        />
-
-        <button
-          type="submit"
-          className="bg-blue-500 text-white w-full py-2 rounded"
-        >
-          Logga in
-        </button>
-      </form>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-200">
+      <div className="bg-white p-8 shadow-xl rounded-xl w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center">{isRegister ? 'Registrera' : 'Logga in'}</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            className="w-full border p-2 rounded"
+            placeholder="E-post"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            type="email"
+            required
+          />
+          <input
+            className="w-full border p-2 rounded"
+            placeholder="Lösenord"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            type="password"
+            required
+          />
+          {error && <p className="text-red-500 text-center text-sm">{error}</p>}
+          <button className="w-full bg-blue-600 text-white p-2 rounded" type="submit">
+            {isRegister ? 'Registrera' : 'Logga in'}
+          </button>
+          <button
+            type="button"
+            className="text-sm text-center w-full text-blue-600 mt-2"
+            onClick={() => setIsRegister(!isRegister)}
+          >
+            {isRegister ? 'Har du redan ett konto? Logga in!' : 'Inget konto? Registrera dig!'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
-
-export default LoginPage;
